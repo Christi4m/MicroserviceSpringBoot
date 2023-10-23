@@ -1,0 +1,69 @@
+version: '3'
+services:
+  ### postgress database for cliente persona service
+  db-cp:
+    container_name: db-cp
+    image: postgres:15.2
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ms_cp
+      POSTGRES_USER: pruebadevsu
+      POSTGRES_PASSWORD: Test123
+    ports:
+      - 5431:5431
+    expose:
+      - 5431
+    command: -p 5431
+  ### Mysql database for cuenta movimientos service
+  db-cm:
+    container_name: db-cm
+    image: mysql:8.0.33
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ms_cm
+      MYSQL_USER: pruebadevsu
+      MYSQL_PASSWORD: Test123
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - 3306:3306
+    expose:
+      - 3306
+
+  ### postgress database keycloak
+  db-keycloak:
+    container_name: db-keycloak
+    image: postgres:15.2
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: db_keycloak
+      POSTGRES_USER: pruebadevsu
+      POSTGRES_PASSWORD: Test123
+    ports:
+      - 5433:5433
+    expose:
+      - 5433
+    command: -p 5433
+
+  keycloak:
+    container_name: keycloak
+    image: quay.io/keycloak/keycloak:21.0.2
+    command: ["start-dev"]
+    ports:
+      - 8181:8181
+    expose:
+      - 8181
+    depends_on:
+      - db-keycloak
+    environment:
+      DB_VENDOR: POSTGRES
+      DB_ADDR: db-keycloak
+      DB_DATABASE: db_keycloak
+      DB_PORT: 5433
+      DB_USER: pruebadevsu
+      DB_PASSWORD: Test123
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HTTP_PORT: 8181
+
+    ##docker exec db-cm mysqldump -u root -proot ms_cm > ./backups_db/backup_cm.sql
+##docker exec db-cp pg_dump -U pruebadevsu -d ms_cp -p 5431 --no-owner --no-comments > ./backups_db/backup_cp.sql
